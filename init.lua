@@ -110,6 +110,39 @@ vim.o.mouse = 'a'
 -- Don't show the mode, since it's already in the status line
 vim.o.showmode = false
 
+vim.o.winborder = "rounded"
+
+vim.opt.wrap = true
+vim.opt.textwidth = 120
+
+-- vim.o.width = 120
+
+-- -- Use LspAttach autocommand to only map the following keys
+-- -- after the language server attaches to the current buffer
+-- vim.api.nvim_create_autocmd('LspAttach', {
+-- 	group = vim.api.nvim_create_augroup('UserLspConfig', {}),
+-- 	callback = function(ev)
+-- 		-- Enable completion triggered by <c-x><c-o>
+-- 		vim.bo[ev.buf].omnifunc = 'v:lua.vim.lsp.omnifunc'
+
+-- 		-- Buffer local mappings.
+-- 		-- See `:help vim.lsp.*` for documentation on any of the below functions
+-- 		local opts = { buffer = ev.buf }
+-- 		vim.keymap.set('n', 'gD', vim.lsp.buf.declaration, opts)
+-- 		vim.keymap.set('n', 'gd', vim.lsp.buf.definition, opts)
+-- 		vim.keymap.set('n', 'K', vim.lsp.buf.hover, opts)
+-- 		vim.keymap.set('n', 'gi', vim.lsp.buf.implementation, opts)
+-- 		vim.keymap.set('n', 'gr', vim.lsp.buf.references, opts)
+-- 		vim.keymap.set({ 'n', 'v' }, '<leader>a', vim.lsp.buf.code_action, opts)
+-- 		-- vim.keymap.set('n', '<C-k>', vim.lsp.buf.signature_help, opts)
+-- 		-- vim.keymap.set('n', '<leader>D', vim.lsp.buf.type_definition, opts)
+-- 		vim.keymap.set('n', '<leader>rn', vim.lsp.buf.rename, opts)
+-- 		vim.keymap.set('n', '<leader>=', function()
+-- 			vim.lsp.buf.format { async = true }
+-- 		end, opts)
+-- 	end,
+-- })
+
 -- Sync clipboard between OS and Neovim.
 --  Schedule the setting after `UiEnter` because it can increase startup-time.
 --  Remove this option if you want your OS clipboard to remain independent.
@@ -482,7 +515,15 @@ require('lazy').setup({
       -- Automatically install LSPs and related tools to stdpath for Neovim
       -- Mason must be loaded before its dependents so we need to set it up here.
       -- NOTE: `opts = {}` is the same as calling `require('mason').setup({})`
-      { 'mason-org/mason.nvim', opts = {} },
+      { 'mason-org/mason.nvim', opts = {
+          handlers = {
+            function(server_name) -- default handler (optional)
+              vim.lsp.enable(server_name)
+            end,
+          },
+
+        }, 
+      },
       'mason-org/mason-lspconfig.nvim',
       'WhoIsSethDaniel/mason-tool-installer.nvim',
 
@@ -493,6 +534,7 @@ require('lazy').setup({
       'saghen/blink.cmp',
     },
     config = function()
+
       -- Brief aside: **What is LSP?**
       --
       -- LSP is an initialism you've probably heard, but might not understand what it is.
@@ -806,7 +848,18 @@ require('lazy').setup({
           --   end,
           -- },
         },
-        opts = {},
+        opts = {
+			-- See :h blink-cmp-config-keymap for defining your own keymap
+          keymap = { preset = 'enter' },
+          appearance = {
+            nerd_font_variant = 'mono'
+          },
+          sources = {
+            default = { 'lsp', 'path', 'snippets', 'buffer' },
+          },
+          fuzzy = { implementation = "prefer_rust_with_warning" }
+        },
+        opts_extend = { "sources.default" }
       },
       'folke/lazydev.nvim',
     },
@@ -895,6 +948,11 @@ require('lazy').setup({
       -- Like many other themes, this one has different styles, and you could load
       -- any other, such as 'tokyonight-storm', 'tokyonight-moon', or 'tokyonight-day'.
       vim.cmd.colorscheme 'tokyonight-night'
+
+      -- ADD YOUR HIGHLIGHT OVERRIDES HERE
+      -- This will run AFTER the colorscheme is loaded
+      vim.api.nvim_set_hl(0, "NormalFloat", { bg = "#333333" })
+      vim.api.nvim_set_hl(0, "FloatBorder", { fg = "#0000ff" })
     end,
   },
 
